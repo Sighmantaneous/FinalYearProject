@@ -1,0 +1,26 @@
+CompileFlags:
+  Add:
+    - -ffreestanding
+    - -Wall
+    - -Wextra
+  Remove:
+    - -mlongcalls
+    - -mtext-section-literals
+    - -fno-tree-switch-conversion
+    - -fstrict-volatile-bitfields
+
+Diagnostics:
+  UnusedIncludes: Strict
+  ClangTidy:
+    Add:
+      - bugprone-*
+      - cert-*
+      - performance-*
+    Remove:
+      - cert-dcl03-c
+      - bugprone-easily-swappable-parameters
+
+InlayHints:
+  Enabled: true
+  ParameterNames: true
+  DeducedTypes: true
