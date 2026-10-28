@@ -1,3 +1,5 @@
+#ifndef PHY_H
+#define PHY_H
 #include <stddef.h>
 #include <stdint.h>
 
@@ -6,3 +8,4 @@
 int phy_send(const uint8_t *buff, size_t len);
 
 int phy_rec(uint8_t *buff, size_t cap);
+#endif

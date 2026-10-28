@@ -1,3 +1,6 @@
+#ifndef PACKET_H
+#define PACKET_H
+
 #include <stddef.h>
 #include <stdint.h>
 
@@ -18,3 +21,5 @@ typedef struct {
 
 int packet_serialise(const packet_t *pkt, uint8_t *buff, size_t cap);
 int packet_deserialise(const uint8_t *buff, size_t n, packet_t *out);
+
+#endif
