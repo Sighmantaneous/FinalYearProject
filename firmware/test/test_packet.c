@@ -19,7 +19,7 @@ static void test_packet_flow(void) {
   tx.ttl = 3;
   tx.hop_start = 3;
   tx.len = 5;
-  memcpy(tx.payload, "HelloWorld", 5);
+  memcpy(tx.payload, "Hello", 5);
 
   uint8_t wire[PACKET_MAX];
   int n = packet_serialise(&tx, wire, sizeof wire);
@@ -48,7 +48,6 @@ static void test_packet_flow(void) {
 }
 
 int main(void) {
-
   test_packet_flow();
   return 0;
 }
