@@ -25,6 +25,10 @@
 
 #define CMD_GET_STATUS 0xC0
 #define CMD_READ_REG 0x1D
+#define CMD_WRITE_REG 0x0D
+#define CMD_SET_STANDBY 0x80
+#define STDBY_RC 0x00
+#define STDBY_XOSC 0x01
 
 static spi_device_handle_t radio;
 
@@ -154,6 +158,77 @@ static esp_err_t read_reg(uint16_t addr, uint8_t *val) {
   return ESP_OK;
 }
 
+static esp_err_t write_reg(uint16_t addr, const uint8_t *data, size_t n) {
+  if (n > 13) {
+    return ESP_ERR_INVALID_SIZE;
+  }
+
+  uint8_t tx[16] = {CMD_WRITE_REG, addr >> 8, addr & 0xFF};
+  uint8_t rx[16] = {0};
+  for (size_t i = 0; i < n; i++) {
+    tx[3 + i] = data[i];
+  }
+  return radio_trans(tx, rx, 3 + n);
+}
+
+static esp_err_t set_standby(uint8_t cfg) {
+  uint8_t tx[2] = {CMD_SET_STANDBY, cfg};
+  uint8_t rx[2] = {0};
+  return radio_trans(tx, rx, 2);
+}
+
+static void test_sync_write(void) {
+  const uint8_t pub[2] = {0x34, 0x44};
+  const uint8_t priv[2] = {0x14, 0x24};
+  uint8_t msb, lsb;
+  esp_err_t err;
+
+  err = write_reg(0x0740, pub, 2);
+  if (err != ESP_OK) {
+    ESP_LOGE("radio", "Write pub %s", esp_err_to_name(err));
+    return;
+  }
+
+  err = read_reg(0x740, &msb);
+  if (err == ESP_OK) {
+    err = read_reg(0x0741, &lsb);
+  }
+  if (err != ESP_OK) {
+    ESP_LOGE("radio", "readback: %s", esp_err_to_name(err));
+    return;
+  }
+  ESP_LOGI("radio", "wrote 0x3444, read 0x%02X%02X (%s)", msb, lsb,
+           (msb == 0x34 && lsb == 0x44) ? "PASS" : "FAIL");
+
+  err = write_reg(0x0740, priv, 2); // restore default
+  if (err != ESP_OK) {
+    ESP_LOGE("radio", "write priv: %s", esp_err_to_name(err));
+    return;
+  }
+}
+
+static void test_standby(void) {
+  uint8_t st;
+  esp_err_t err = set_standby(STDBY_XOSC);
+  if (err == ESP_OK) {
+    err = get_status(&st);
+  }
+  if (err != ESP_OK) {
+    ESP_LOGE("radio", "xosc: %s", esp_err_to_name(err));
+    return;
+  }
+  ESP_LOGI("radio", "after STDBY_XOSC mode=%d (expect 3)", (st >> 4) & 7);
+
+  err = set_standby(STDBY_RC);
+  if (err == ESP_OK) {
+    err = get_status(&st);
+  }
+  if (err != ESP_OK) {
+    ESP_LOGE("radio", "rc: %s", esp_err_to_name(err));
+    return;
+  }
+  ESP_LOGI("radio", "after STDBY_RC mode=%d (expect 2)", (st >> 4) & 7);
+}
 void radio_con_test(void) {
 
   gpio_setup();
@@ -187,10 +262,7 @@ void radio_con_test(void) {
     return;
   }
 
-  err = read_reg(0x0741, &lsb);
-  if (err != ESP_OK) {
-    ESP_LOGE("radio", "read 0x0741: %s", esp_err_to_name(err));
-    return;
-  }
   ESP_LOGI("radio", "sync_word=0x%02X%02X (expect 0x1424)", msb, lsb);
+  test_sync_write();
+  test_standby();
 }
