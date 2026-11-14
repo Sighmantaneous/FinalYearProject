@@ -62,7 +62,7 @@ static esp_err_t radio_trans(const uint8_t *tx, uint8_t *rx, size_t len) {
   return spi_device_polling_transmit(radio, &t);
 }
 
-static void gpio_setup(void) {
+static esp_err_t gpio_setup(void) {
 
   gpio_config_t out_cfg = {
 
@@ -72,18 +72,30 @@ static void gpio_setup(void) {
       .pull_up_en = 0,
       .intr_type = 0,
   };
+  esp_err_t err = gpio_config(&out_cfg);
+  if (err != ESP_OK) {
+    return err;
+  }
 
-  gpio_config(&out_cfg);
-  gpio_set_level(RESET_PIN, 1);
-  gpio_set_level(RX_PIN, 0);
-  gpio_set_level(TX_PIN, 0);
+  err = gpio_set_level(RESET_PIN, 1);
+  if (err != ESP_OK) {
+    return err;
+  }
+  err = gpio_set_level(RX_PIN, 0);
+  if (err != ESP_OK) {
+    return err;
+  }
+  err = gpio_set_level(TX_PIN, 0);
+  if (err != ESP_OK) {
+    return err;
+  }
 
   gpio_config_t in_cfg = {
       .pin_bit_mask = (1ULL << BUSY_PIN),
       .mode = GPIO_MODE_INPUT,
   };
 
-  gpio_config(&in_cfg);
+  return gpio_config(&in_cfg);
 }
 
 static esp_err_t spi_setup(void) {
