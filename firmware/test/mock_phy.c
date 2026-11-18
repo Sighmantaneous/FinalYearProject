@@ -1,12 +1,12 @@
 #include "mock_phy.h"
-#include "packet.h"
+#include "phy.h"
 #include <stddef.h>
 #include <string.h>
 
 #define MOCK_QUEUE_LEN 16
 
 typedef struct {
-  uint8_t bytes[PACKET_MAX];
+  uint8_t bytes[PHY_MAX_FRAME];
   size_t len;
 } mock_frame_t;
 
@@ -19,7 +19,7 @@ void mock_phy_resetq(void) { head = tail = count = 0; }
 
 int phy_send(const uint8_t *buff, size_t len) {
 
-  if (buff == NULL || len > PACKET_MAX) {
+  if (buff == NULL || len > PHY_MAX_FRAME) {
     return -1;
   }
 

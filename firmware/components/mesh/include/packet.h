@@ -1,12 +1,13 @@
 #ifndef PACKET_H
 #define PACKET_H
 
+#include "phy.h"
 #include <stddef.h>
 #include <stdint.h>
 
 #define PACKET_HEADER_LEN 8
-#define PACKET_MAX_PAYLOAD 255
-#define PACKET_MAX 263
+#define PACKET_MAX_PAYLOAD (PHY_MAX_FRAME - PACKET_HEADER_LEN)
+#define PACKET_MAX PHY_MAX_FRAME
 
 typedef struct {
   uint8_t dest;

@@ -8,6 +8,10 @@ int packet_serialise(const packet_t *pkt, uint8_t *buff, size_t cap) {
     return -1;
   }
 
+  if (pkt->len > PACKET_MAX_PAYLOAD) {
+    return -1;
+  }
+
   size_t total = (size_t)PACKET_HEADER_LEN + pkt->len;
 
   if (total > cap) {
@@ -39,6 +43,10 @@ int packet_deserialise(const uint8_t *buff, size_t n, packet_t *out) {
     return -1;
   }
   uint8_t len = buff[7];
+
+  if (len > PACKET_MAX_PAYLOAD) {
+    return -1;
+  }
 
   if (n != (size_t)PACKET_HEADER_LEN + len) {
     return -1;
